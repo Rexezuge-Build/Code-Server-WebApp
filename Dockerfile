@@ -14,13 +14,24 @@ RUN apt install -y zsh \
  && git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions \
  && sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc
 
+RUN apt install -y openssh-server \
+ && mkdir /root/.ssh
+
 RUN apt autoremove --purge -y curl git\
  && rm ~/.bash*
 
-EXPOSE 8443/tcp
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+
+EXPOSE 8443/tcp \
+       22/tcp
 
 VOLUME /root/workspace
 
+ENV SSH_PUBLIC_KEY=0
+
 ADD config.yaml /root/.config/code-server/config.yaml
 
-ENTRYPOINT code-server
+ADD motd /etc/motd
+
+ADD Entrypoint.sh .Entrypoint.sh
+ENTRYPOINT ./.Entrypoint.sh

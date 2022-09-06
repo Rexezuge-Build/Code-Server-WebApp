@@ -20,6 +20,8 @@ RUN apt install -y openssh-server \
 RUN apt autoremove --purge -y curl git\
  && rm ~/.bash*
 
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+
 EXPOSE 8443/tcp \
        22/tcp
 
@@ -28,6 +30,8 @@ VOLUME /root/workspace
 ENV SSH_PUBLIC_KEY=0
 
 ADD config.yaml /root/.config/code-server/config.yaml
+
+ADD motd /etc/motd
 
 ADD Entrypoint.sh .Entrypoint.sh
 ENTRYPOINT ./.Entrypoint.sh
