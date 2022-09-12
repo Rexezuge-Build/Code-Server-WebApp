@@ -17,8 +17,7 @@ RUN apt install -y zsh \
  && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
  && git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions \
  && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k \
- && sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' ~/.zshrc \
- && sed -i 's?ZSH_THEME="robbyrussell"?ZSH_THEME="powerlevel10k/powerlevel10k"?g' ~/.zshrc
+ && rm ~/.zshrc
 
 RUN apt install -y openssh-server \
  && mkdir /root/.ssh
@@ -38,6 +37,10 @@ ENV SSH_PUBLIC_KEY=0
 ADD .FILES/config.yaml /root/.config/code-server/config.yaml
 
 ADD .FILES/motd /etc/motd
+
+ADD .FILES/zshrc /root/.zshrc
+
+ADD .FILES/p10k.zsh /root/.p10k.zsh
 
 ADD Entrypoint.sh .Entrypoint.sh
 ENTRYPOINT ./.Entrypoint.sh
