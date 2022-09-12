@@ -2,7 +2,11 @@ FROM debian:11-slim
 
 RUN apt update \
  && apt upgrade -y \
- && apt install -y curl git\
+ && apt install -y locales \
+ && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+ && locale-gen
+
+RUN apt install -y curl git\
  && curl -fOL https://github.com/coder/code-server/releases/download/v3.12.0/code-server_3.12.0_amd64.deb \
  && dpkg -i code-server_3.12.0_amd64.deb \
  && rm code-server_3.12.0_amd64.deb
