@@ -35,9 +35,9 @@ VOLUME /root/workspace
 
 ENV SSH_PUBLIC_KEY=0
 
-ADD config.yaml /root/.config/code-server/config.yaml
+ADD .FILES/config.yaml /root/.config/code-server/config.yaml
 
-ADD motd /etc/motd
+ADD .FILES/motd /etc/motd
 
 ADD Entrypoint.sh .Entrypoint.sh
 ENTRYPOINT ./.Entrypoint.sh
