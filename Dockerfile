@@ -4,7 +4,8 @@ RUN apt update \
  && apt upgrade -y \
  && apt install -y locales \
  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
- && locale-gen
+ && locale-gen \
+ && apt autoremove -y --purge locales
 
 RUN apt install -y curl git\
  && curl -fOL https://github.com/coder/code-server/releases/download/v4.7.0/code-server_4.7.0_amd64.deb \
