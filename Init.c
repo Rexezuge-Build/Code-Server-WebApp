@@ -5,6 +5,12 @@
 #include <unistd.h>
 
 int main(void) {
+  // Refuse to Start as Non-Pid=1 Program
+  if (getpid() != 1) {
+    printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Must be Run as PID 1");
+    exit(EXIT_FAILURE);
+  }
+
   // Allocate Space for Variables
   char *SSH_PUBLIC_KEY = NULL;
 
