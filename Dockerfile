@@ -6,7 +6,7 @@ RUN apt update \
  && apt install -y curl git\
  && apt install -y zsh
 
-RUN curl -fOL https://github.com/coder/code-server/releases/download/v4.7.0/code-server_4.7.0_amd64.deb
+RUN curl -fOL https://github.com/coder/code-server/releases/download/v4.7.1/code-server_4.7.1_amd64.deb
 
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
  && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
@@ -20,13 +20,9 @@ RUN clang -o Init.out -Ofast Init.c
 FROM debian:11-slim
 
 RUN apt update \
- && apt upgrade -y \
- && apt install -y locales \
- && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
- && locale-gen \
- && apt autoremove -y --purge locales
+ && apt upgrade -y
 
-COPY --from=0 code-server_4.7.0_amd64.deb /code-server-installer.deb
+COPY --from=0 code-server_4.7.1_amd64.deb /code-server-installer.deb
 
 RUN dpkg -i /code-server-installer.deb \
  && rm code-server-installer.deb
@@ -39,14 +35,15 @@ RUN apt install -y zsh \
 RUN apt install -y openssh-server \
  && mkdir /root/.ssh
 
-RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config \
+ && sed -i 's/#Port 22/Port 8442/g' /etc/ssh/sshd_config
 
 RUN rm ~/.bash*
 
 RUN apt clean
 
-EXPOSE 8443/tcp \
-       22/tcp
+EXPOSE 8442/tcp \
+       8443/tcp
 
 VOLUME /root/workspace
 
