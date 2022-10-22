@@ -29,10 +29,10 @@ RUN dpkg -i /code-server-installer.deb \
 
 COPY --from=0 /root/.oh-my-zsh /root/.oh-my-zsh
 
-RUN apt install -y zsh \
+RUN apt install -y --no-install-recommends zsh \
  && chsh -s /usr/bin/zsh
 
-RUN apt install -y openssh-server \
+RUN apt install -y --no-install-recommends openssh-server \
  && mkdir /root/.ssh
 
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config \
@@ -40,14 +40,9 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/
 
 RUN rm ~/.bash*
 
-RUN apt clean
-
-EXPOSE 8442/tcp \
-       8443/tcp
-
-VOLUME /root/workspace
-
-ENV SSH_PUBLIC_KEY=YOUR_SSH_PUBLIC_KEY
+RUN apt autoremove -y --purge \
+ && apt clean \
+ && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 COPY .FILES/config.yaml /root/.config/code-server/config.yaml
 
@@ -58,5 +53,16 @@ COPY .FILES/zshrc /root/.zshrc
 COPY .FILES/p10k.zsh /root/.p10k.zsh
 
 COPY --from=0 /Init.out /usr/bin/init
+
+FROM scratch
+
+COPY --from=1 / /
+
+EXPOSE 8442/tcp \
+       8443/tcp
+
+VOLUME /root/workspace
+
+ENV SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
 ENTRYPOINT ["/usr/bin/init"]
