@@ -1,4 +1,8 @@
-FROM debian:11-slim
+FROM debian:12-slim
+
+ENV VERSION=4.14.0
+
+ENV ARCHITECTURE=arm64
 
 RUN apt update \
  && apt upgrade -y \
@@ -6,7 +10,7 @@ RUN apt update \
  && apt install -y curl git\
  && apt install -y zsh
 
-RUN curl -fOL https://github.com/coder/code-server/releases/download/v4.9.1/code-server_4.9.1_amd64.deb
+RUN curl -f -o code-server.deb -L https://github.com/coder/code-server/releases/download/v${VERSION}/code-server_${VERSION}_${ARCHITECTURE}.deb
 
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
  && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
@@ -17,15 +21,15 @@ COPY Init.c Init.c
 
 RUN clang -o Init.out -Ofast Init.c
 
-FROM debian:11-slim
+FROM debian:12-slim
 
 RUN apt update \
  && apt upgrade -y
 
-COPY --from=0 code-server_4.9.1_amd64.deb /code-server-installer.deb
+COPY --from=0 /code-server.deb /code-server.deb
 
-RUN dpkg -i /code-server-installer.deb \
- && rm code-server-installer.deb
+RUN dpkg -i /code-server.deb \
+ && rm /code-server.deb
 
 COPY --from=0 /root/.oh-my-zsh /root/.oh-my-zsh
 
