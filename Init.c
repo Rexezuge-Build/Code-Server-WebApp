@@ -22,7 +22,7 @@ void runService_SSHServer(void) {
 
   // Start openSSH-Server Only When SSH_PUBLIC_KEY is Set
   if (unlikely(strcmp(SSH_PUBLIC_KEY, "YOUR_SSH_PUBLIC_KEY") != 0)) {
-    int fileDescriptor = open("/root/.ssh/authorized_keys", O_WRONLY | O_CREAT);
+    int fileDescriptor = open("/home/coder/.ssh/authorized_keys", O_WRONLY | O_CREAT);
     if (unlikely(fileDescriptor == -1)) {
       printf("\033[0;31m%s\033[0m%s\n",
              "ERROR: ", "Failed Write SSH Public Key to File");
@@ -44,9 +44,11 @@ void runService_SSHServer(void) {
       exit(EXIT_FAILURE);
     } else if (pidSSH == 0) {
       fclose(stdin);
-      freopen("/dev/null", "w", stdout);
-      freopen("/dev/null", "w", stderr);
+      freopen("/var/log/Shigure/ssh/out", "w", stdout);
+      freopen("/var/log/Shigure/ssh/err", "w", stderr);
+      seteuid(1000);
       execl("/usr/sbin/service", "service", "ssh", "start", NULL);
+      printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Failed to Launch openSSH Server");
       exit(EXIT_FAILURE);
     }
     waitpid(pidSSH, NULL, 0);
@@ -67,10 +69,14 @@ void runService_CodeServer(void) {
   } else if (pidCodeServer == 0) {
     fflush(stdout);
     fclose(stdin);
-    freopen("/dev/null", "w", stdout);
-    freopen("/dev/null", "w", stderr);
+    freopen("/var/log/Shigure/code-server/out", "w", stdout);
+    freopen("/var/log/Shigure/code-server/err", "w", stderr);
+    setuid(1000);
     execl("/usr/bin/code-server", "code-server", NULL);
+    printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Failed to Launch Code-Server");
+    exit(EXIT_FAILURE);
   }
+  waitpid(pidCodeServer, NULL, 0);
 }
 
 int main(void) {
@@ -79,6 +85,12 @@ int main(void) {
     printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Must be Run as PID 1");
     exit(EXIT_FAILURE);
   }
+
+  // Refuse to Start as Non-Uid=1 Program
+   if (geteuid() != 0) {
+         printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Must be Run as UID 1");
+    exit(EXIT_FAILURE);
+    }
 
   runService_SSHServer();
 

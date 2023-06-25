@@ -1,8 +1,7 @@
 FROM debian:12-slim
 
-ENV VERSION=4.14.0
-
-ENV ARCHITECTURE=arm64
+ENV VERSION=4.14.0 \
+    ARCHITECTURE=arm64
 
 RUN apt update \
  && apt upgrade -y \
@@ -23,6 +22,8 @@ RUN clang -o Init.out -Ofast Init.c
 
 FROM debian:12-slim
 
+RUN useradd -m -G sudo coder
+
 RUN apt update \
  && apt upgrade -y
 
@@ -31,16 +32,24 @@ COPY --from=0 /code-server.deb /code-server.deb
 RUN dpkg -i /code-server.deb \
  && rm /code-server.deb
 
-COPY --from=0 /root/.oh-my-zsh /root/.oh-my-zsh
+COPY --from=0 /root/.oh-my-zsh /home/coder/.oh-my-zsh
+
+RUN chown -R coder:coder /home/coder/.oh-my-zsh
 
 RUN apt install -y --no-install-recommends zsh \
- && chsh -s /usr/bin/zsh
+ && chsh -s /usr/bin/zsh coder
 
 RUN apt install -y --no-install-recommends openssh-server \
- && mkdir /root/.ssh
+ && mkdir /home/coder/.ssh
 
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config \
  && sed -i 's/#Port 22/Port 8442/g' /etc/ssh/sshd_config
+
+RUN apt install -y --no-install-recommends sudo
+
+RUN echo "\n" >> /etc/sudoers \
+ && echo "# Allow members of group sudo to execute any command without password" >> /etc/sudoers \
+ && echo "%sudo   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 RUN rm ~/.bash*
 
@@ -48,13 +57,16 @@ RUN apt autoremove -y --purge \
  && apt clean \
  && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-COPY .FILES/config.yaml /root/.config/code-server/config.yaml
+RUN mkdir -p /var/log/Shigure/code-server \
+ && mkdir -p /var/log/Shigure/ssh
+
+COPY .FILES/config.yaml /home/coder/.config/code-server/config.yaml
 
 COPY .FILES/motd /etc/motd
 
-COPY .FILES/zshrc /root/.zshrc
+COPY .FILES/zshrc /home/coder/.zshrc
 
-COPY .FILES/p10k.zsh /root/.p10k.zsh
+COPY .FILES/p10k.zsh /home/coder/.p10k.zsh
 
 COPY --from=0 /Init.out /usr/bin/init
 
@@ -65,7 +77,7 @@ COPY --from=1 / /
 EXPOSE 8442/tcp \
        8443/tcp
 
-VOLUME /root/workspace
+VOLUME /home/coder/workspace
 
 ENV SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
