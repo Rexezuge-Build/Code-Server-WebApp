@@ -1,6 +1,6 @@
 FROM debian:12-slim
 
-ENV VERSION=4.14.0 \
+ENV VERSION=4.18.0 \
     ARCHITECTURE=arm64
 
 RUN apt update \
