@@ -87,10 +87,10 @@ int main(void) {
   }
 
   // Refuse to Start as Non-Uid=1 Program
-   if (geteuid() != 0) {
-         printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Must be Run as UID 1");
-    exit(EXIT_FAILURE);
-    }
+  // if (geteuid() != 0) {
+  //   printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Must be Run as UID 1");
+  //   exit(EXIT_FAILURE);
+  // }
 
   runService_SSHServer();
 
